@@ -133,7 +133,10 @@ export class BridleCore {
   constructor(state: BridleState = loadState(), overrides: { dsh?: AgentClient; eventCapacity?: number } = {}) {
     this.state = state
     this.keys = staticKeys(state)
-    this.dsh = overrides.dsh ?? new DshClient({ baseUrl: state.dshUrl })
+    this.dsh = overrides.dsh ?? new DshClient({
+      baseUrl: state.dshUrl,
+      ...(state.dshLoginTokenFile === undefined ? {} : { loginTokenFile: state.dshLoginTokenFile }),
+    })
     this.events = overrides.eventCapacity === undefined ? new EventLog() : new EventLog(overrides.eventCapacity)
   }
 

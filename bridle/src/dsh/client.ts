@@ -54,6 +54,16 @@ export interface DshClientOptions {
   baseUrl: string
   /** Milliseconds before an idle unary request is abandoned. */
   requestTimeoutMs?: number
+  /**
+   * File holding the harness's rotating login token.
+   *
+   * Required by harnesses that put a browser session cookie in front of `/api`
+   * — everything from dsh 0.1.2 on, including over loopback. When omitted the
+   * client looks in the runtime locations a systemd `RuntimeDirectory` uses; a
+   * harness that needs a cookie and has no discoverable token reports
+   * unreachable with that reason instead of a bare 401.
+   */
+  loginTokenFile?: string
 }
 
 /** Default ceiling for one unary call; long-running work streams over the downlinks instead. */

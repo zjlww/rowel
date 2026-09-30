@@ -198,6 +198,12 @@ async function launch(options: Options): Promise<Launched | undefined> {
     overrideState(state, { relayUrl: relayOverride })
   }
   const dshOverride = flagString(options, 'dsh')
+  const tokenOverride = flagString(options, 'dsh-login-token-file')
+  if (tokenOverride !== undefined) {
+    updateState(state, (disk) => { disk.dshLoginTokenFile = tokenOverride })
+    // Also for this run, over any `ROWEL_DSH_LOGIN_TOKEN_FILE`.
+    overrideState(state, { dshLoginTokenFile: tokenOverride })
+  }
 
   say(`Rowel Bridle ${VERSION} · ${state.machineName}`)
   // Binding resolution, strongest anchor first:
@@ -839,6 +845,11 @@ Options for start:
   --dsh-home <path>   bind to the dsh living in this DSH_HOME; its own config
                       (webserver host+port) says where it answers
   --dsh-command <cmd> how to launch the harness (default: dsh)
+  --dsh-login-token-file <path>
+                      file holding the harness's rotating login token, when the
+                      harness requires a browser session cookie on /api (dsh
+                      0.2 does, even over loopback). Defaults to the token a
+                      systemd unit already keeps in $XDG_RUNTIME_DIR/dsh-web/.
   --direct-port <n>   fixed port for the local-network tunnel
   --advertise <url>   extra address(es) to put in the pairing code, comma
                       separated. For a tunnel hostname the machine cannot

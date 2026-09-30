@@ -104,6 +104,18 @@ export interface BridleState {
    * where that world answers. Optional: a plain URL binding works as before.
    */
   dshHome?: string
+  /**
+   * File holding the harness's rotating login token, when the deployment keeps
+   * one.
+   *
+   * dsh 0.2 requires a browser session cookie on `/api` even over loopback, and
+   * the cookie is minted from a short-lived token that `dsh web` prints at
+   * startup. A systemd deployment with `RuntimeDirectory=` can keep that token
+   * in a tmpfs file and rotate it on its own schedule, which is what this names.
+   * Absent, the client looks in the usual runtime locations and reports the
+   * harness unreachable when it finds no token, rather than guessing.
+   */
+  dshLoginTokenFile?: string
   peers: PairedPeer[]
   offer?: PairingOffer
 }
@@ -241,7 +253,7 @@ export function loadState(): BridleState {
 }
 
 /** Settings that apply to one process and must never reach the file. */
-export type StateOverrides = Partial<Pick<BridleState, 'relayUrl' | 'dshUrl'>>
+export type StateOverrides = Partial<Pick<BridleState, 'relayUrl' | 'dshUrl' | 'dshLoginTokenFile'>>
 
 /** The overrides each in-memory state carries, reapplied after every reload. */
 const overridesOf = new WeakMap<BridleState, StateOverrides>()
@@ -266,9 +278,11 @@ export function overrideState(state: BridleState, overrides: StateOverrides): vo
 function applyEnvironment(state: BridleState): BridleState {
   const relay = process.env['ROWEL_RELAY_URL']
   const dsh = process.env['ROWEL_DSH_URL']
+  const token = process.env['ROWEL_DSH_LOGIN_TOKEN_FILE']
   overrideState(state, {
     ...(relay !== undefined && relay.length > 0 ? { relayUrl: relay } : {}),
     ...(dsh !== undefined && dsh.length > 0 ? { dshUrl: dsh } : {}),
+    ...(token !== undefined && token.length > 0 ? { dshLoginTokenFile: token } : {}),
   })
   return state
 }
